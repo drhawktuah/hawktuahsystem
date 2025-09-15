@@ -1,86 +1,46 @@
-use std::time::{Duration, Instant};
 use std::thread::sleep;
-use std::collections::{VecDeque};
+use std::time::{Duration, Instant};
 
-/// HAWK TUAH SYSTEM (THIS IS A SIMULATION, A PRELUDE TO THE ALBUM)
+use crate::kernel::tasks::HelloTask;
+use crate::kernel::scheduler::{Scheduler, Task};
 
-struct Task {
-    name: String,
-    next_run: Instant,
-    interval: Duration,
-    job: fn(),
-}
+mod kernel;
 
-impl Task {
-    fn run(&mut self) {
-        ((self.job)());
+// declare scheduler as mutable referemce (borrowing the original scheduler instance mutability)
+fn run_scheduler_loop(scheduler: &mut Scheduler) {
+    loop {
+        let now = std::time::Instant::now();
 
-        self.next_run = Instant::now() + self.interval;
-    }
-}
+        let task_count = scheduler.task_count();
 
-struct Scheduler {
-    tasks: VecDeque<Task>
-}
-
-impl Scheduler {
-    fn new() -> Self {
-        Scheduler {
-            tasks: VecDeque::new(),
-        }
-    }
-
-    fn add_task(&mut self, task: Task) {
-        self.tasks.push_back(task);
-    }
-
-    fn run(&mut self) {
-        loop {
-            let now = Instant::now();
-
-            for _i in 0..self.tasks.len() {
-                let mut task = self.tasks.pop_front().unwrap();
-
+        for _ in 0..task_count {
+            if let Some(mut task) = scheduler.pop_task() {
                 if task.next_run <= now {
-                    println!("[{}] Running task", task.name);
-
+                    println!("{} Running task", task.name);
                     task.run();
                 } else {
-                    println!("[{}] Skipping task, will run at {:?}", task.name, task.next_run);
+                    println!("{} not ready yet", task.name);
                 }
 
-                self.tasks.push_back(task);
+                scheduler.push_task(task);
             }
-
-            sleep(Duration::from_millis(100));
         }
+
+        sleep(Duration::from_millis(100));
     }
-}
-
-fn say_hello() {
-    println!("Hello from task 1!");
-}
-
-fn say_world() {
-    println!("Hello from task 2");
 }
 
 fn main() {
     let mut scheduler = Scheduler::new();
 
+    let hello_task = HelloTask::new(); 
+
     scheduler.add_task(Task {
-        name: "Task1".into(),
-        next_run: Instant::now(),
+        name: "hello".to_string(),
         interval: Duration::from_secs(1),
-        job: say_hello,
-    });
-
-    scheduler.add_task(Task {
-        name: "Task2".into(),
         next_run: Instant::now(),
-        interval: Duration::from_secs(2),
-        job: say_world,
+        job: Box::new(hello_task),
     });
 
-    scheduler.run();
+    run_scheduler_loop(&mut scheduler);
 }
