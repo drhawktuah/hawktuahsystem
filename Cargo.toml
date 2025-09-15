@@ -1,0 +1,18 @@
+[package]
+name = "SRTOS"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+embedded-hal = "1.0"
+heapless = "0.8"
+cortex-m = "0.7"         # or riscv, esp32-hal, etc.
+cortex-m-rt = "0.7"
+biquad = "0.4"
+smoltcp = "0.9"          # if not using esp-idf
+esp-idf-sys = { version = "0.34", optional = true }
+defmt = "0.3"
+
+[features]
+default = []
+esp32 = ["esp-idf-sys"]

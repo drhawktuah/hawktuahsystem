@@ -1,0 +1,14 @@
++--------------------------+
+|      Soft RTOS Kernel    |
+|--------------------------|
+| Task Scheduler           |
+| Timer Manager            |
+| IPC / Message Queues     |
++--------------------------+
+       ↑         ↑
+       |         |
++--------------------------+        +------------------+
+| Audio Task (High Prio)   |        | Network Task     |
+| I2S / PDM Driver         |        | MQTT, CoAP       |
+| DSP Filters (Biquad)     |        | Sensor TX        |
++--------------------------+        +------------------+
